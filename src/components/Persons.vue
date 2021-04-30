@@ -63,7 +63,8 @@
 
 <script>
 import FormPerson from "./modals/FormPerson.vue";
-import { getUsers, deleteUser, createUser } from "../services/rest"; 
+import { getUsers, deleteUser, createUser } from "../services/rest";
+import { query } from "../services/graphql"; 
 export default {
   components: {
     FormPerson
@@ -111,8 +112,18 @@ export default {
   },
   methods: {
     async load() {
-      const users = await getUsers();
-      this.persons = [...users]
+      const usersRest = await getUsers();
+      const usersGraphql = await query(`{
+        userMany (filter: {}){
+          _id
+          name
+          lastname
+          age
+        }
+      }`);
+      this.persons = [...usersRest]
+      console.log('rest: ', usersRest)
+      console.log('graphql: ', usersGraphql)
     },
     add() {
       this.active = true;
@@ -120,7 +131,6 @@ export default {
 
     async remove(index, item = {}) {
       const res = deleteUser(item._id)
-      console.log('res: ', res)
       await this.load()
       this.dismissCountDown = this.dismissSecs;
     },
